@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>C11 — Auditoria de Serviços Operacionais — Ecovias do Araguaia — Março/2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#0d1117;color:#e2e8f0;min-height:100vh;font-size:13px}
+header{background:#0d1117;border-bottom:1px solid rgba(255,255,255,.08);padding:0 28px;height:58px;display:flex;align-items:center;gap:14px}
+.vi{width:36px;height:36px;border-radius:8px;background:#0284c7;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;flex-shrink:0}
+.ht{flex:1}.ht h1{font-size:15px;font-weight:700;color:#f1f5f9;letter-spacing:-.2px}.ht p{font-size:11px;color:#64748b;margin-top:1px}
+.hm{text-align:right;font-size:10px;color:#64748b;flex-shrink:0}.hm strong{color:#C9A84C;font-size:11px;display:block}
+.wrap{padding:22px 28px;max-width:1200px;margin:0 auto}
+.db{display:inline-flex;align-items:center;gap:7px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.2);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:600;color:#4ade80;margin-bottom:16px}
+/* NOTA COLAPSÁVEL */
+.nota-wrap{background:#1a2035;border:1px solid rgba(56,189,248,.15);border-radius:8px;margin-bottom:16px;overflow:hidden}
+.nota-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;gap:12px}
+.nota-toggle:hover{background:rgba(56,189,248,.06)}
+.nota-toggle strong{color:#38bdf8;font-size:11px}
+.nota-toggle .chv{color:#38bdf8;font-size:13px;transition:transform .22s;flex-shrink:0;line-height:1}
+.nota-toggle.open .chv{transform:rotate(180deg)}
+.nota-body{font-size:11px;color:#7dd3fc;line-height:1.7;padding:0 14px 12px;display:none}
+.nota-body.open{display:block}
+.ref-tag{display:inline-block;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:1px 6px;font-size:10px;color:#475569;font-family:monospace}
+/* DADOS AUSENTES */
+.bloco-ausente{background:#1a1010;border:1px solid rgba(248,113,113,.25);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.ba-header{display:flex;align-items:center;gap:10px;padding:11px 16px;background:rgba(248,113,113,.06);border-bottom:1px solid rgba(248,113,113,.15)}
+.ba-header span{font-size:12px;font-weight:700;color:#f87171}
+.ba-item{display:flex;align-items:flex-start;gap:10px;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px}
+.ba-item:last-child{border-bottom:none}
+.ba-icon{font-size:14px;flex-shrink:0;margin-top:1px;min-width:18px}
+.ba-body{flex:1}
+.ba-title{color:#e2e8f0;font-weight:600;margin-bottom:2px}
+.ba-sub{color:#475569;line-height:1.5}
+.ba-tag{display:inline-block;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:4px;white-space:nowrap}
+.tag-nao{background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.2)}
+.tag-parc{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)}
+/* ST */
+.st{font-size:14px;font-weight:700;color:#e2e8f0;margin:1.4rem 0 .8rem;padding-bottom:6px;border-bottom:2px solid #C9A84C}
+/* CARDS */
+.card{background:#161b26;border-radius:12px;border:1px solid rgba(255,255,255,.07);padding:18px;margin-bottom:14px}
+.card0{background:#161b26;border-radius:12px;border:1px solid rgba(255,255,255,.07);margin-bottom:14px}
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:8px 11px;font-size:10px;font-weight:700;color:#475569;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);background:#111827;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+td{padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.04);color:#94a3b8;vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tf{padding:7px 11px;font-size:10px;color:#475569;border-top:1px solid rgba(255,255,255,.05)}
+/* BADGES */
+.bx{border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;display:inline-block;white-space:nowrap}
+.bg{background:rgba(74,222,128,.1);color:#4ade80}
+.br{background:rgba(248,113,113,.1);color:#f87171}
+.bo{background:rgba(251,191,36,.1);color:#fbbf24}
+.bb{background:rgba(255,255,255,.06);color:#64748b}
+.bbl{background:rgba(56,189,248,.1);color:#38bdf8}
+/* ALERTS */
+.al{border-radius:8px;padding:9px 14px;font-size:11px;display:flex;gap:8px;align-items:flex-start;margin-bottom:12px;line-height:1.5}
+.al:last-child{margin-bottom:0}
+.ar{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:#f87171}
+.aa{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);color:#fbbf24}
+.ab{background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.15);color:#7dd3fc}
+.ag{background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);color:#4ade80}
+/* SIN GRID */
+.sin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.sin-card{border-radius:9px;padding:14px 16px;text-align:center}
+.sin-n{font-size:30px;font-weight:800;line-height:1;margin-bottom:4px}
+.sin-l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.sin-s{font-size:10px;color:#475569}
+/* SÍNTESE */
+.syn{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-bottom:12px}
+.syi{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
+.syi-l{font-size:12px;color:#94a3b8}
+/* PB */
+.pb-w{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;margin-top:4px}
+.pb-f{height:100%;border-radius:3px}
+/* CAMPO */
+.campo{color:#fbbf24;font-style:italic}
+/* TWO COL */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+/* CRÍT TABLE */
+.crit-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:11px}
+.crit-row:last-child{border-bottom:none}
+.crit-bar{flex:1;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.crit-fill{height:100%;border-radius:3px;background:#f87171}
+@media(max-width:900px){.two{grid-template-columns:1fr}.three{grid-template-columns:1fr 1fr}.sin-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.sin-grid{grid-template-columns:1fr 1fr}.three{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="vi">VI</div>
+  <div class="ht">
+    <h1>C11 &mdash; Auditoria de Servi&ccedil;os Operacionais</h1>
+    <p>Verificador Independente &middot; SPE RP Verificadores Araguaia &middot; Ecovias do Araguaia &middot; Contrato ANTT n&ordm; 001/2021</p>
+  </div>
+  <div class="hm">
+    <strong>Refer&ecirc;ncia: Mar&ccedil;o/2026</strong>
+    Entrega: Abril/2026 &middot; CNPJ 65.648.797/0001-83
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="db">&#127922; <strong>Informe Mensal de Monitoração</strong>&nbsp;&mdash;&nbsp;Produto C11 &middot; Ciclo: Março/2026 &middot; Fonte: C11-02-Eco Araguaia-ABRIL-26 (REF. MARÇO-26)-V1</div>
+
+  <!-- METODOLOGIA COLAPSÁVEL -->
+  <div class="nota-wrap">
+    <div class="nota-toggle" id="nota-btn" onclick="toggleNota()">
+      <strong>&#8505; Metodologia de auditoria &mdash; clique para expandir</strong>
+      <span class="chv">&#9660;</span>
+    </div>
+    <div class="nota-body" id="nota-body">
+      Auditoria documental com cobertura de 100% das ocorr&ecirc;ncias registradas no per&iacute;odo.
+      Descarte de tempos zerados, nulos ou com chegada anterior ao acionamento (inconsist&ecirc;ncias de registro).
+      Condi&ccedil;&otilde;es anormais de tr&aacute;fego e ocorr&ecirc;ncias simult&acirc;neas isentam a concession&aacute;ria conforme PER.
+      Double-check: SIGICOR &times; CCO Ecovias &times; fichas de campo VI.<br>
+      Fonte dos dados: planilha <em>C11-02-Eco Araguaia-ABRIL-26 (REF. MARÇO-26)-V1.xlsx</em> &mdash; abas Acidentes, Atendimentos-considerados, Atendimentos-desconsiderados, Vit-considerados.<br>
+      Refer&ecirc;ncia normativa: <span class="ref-tag">RCR-4 (Res. ANTT 6.053/2024)</span> &middot; <span class="ref-tag">PER &mdash; Anexo 2 do Contrato 001/2021</span>
+    </div>
+  </div>
+
+  <!-- DADOS NÃO FORNECIDOS -->
+  <div class="st">&#9888; Dados Pendentes &mdash; N&atilde;o Fornecidos pela Concession&aacute;ria</div>
+
+  <div class="bloco-ausente">
+    <div class="ba-header"><span style="font-size:16px">&#9888;</span><span>6 conjuntos de dados n&atilde;o localizados ou parcialmente ausentes neste ciclo &mdash; Mar&ccedil;o/2026</span></div>
+    <div class="ba-item">
+      <div class="ba-icon">&#9888;</div>
+      <div class="ba-body">
+        <div class="ba-title"><span class="ba-tag tag-parc">PARCIAL</span> Acidentes &mdash; Anexo XIX RETOF</div>
+        <div class="ba-sub">Dados de sinistros disponíveis no XLSX do C11 (aba <em>Acidentes</em>), porém o Excel separado no formato Anexo XIX RETOF n&atilde;o foi encaminhado pela concession&aacute;ria. Dados utilizados neste informe prov&ecirc;m da aba interna da planilha do C11.</div>
+      </div>
+    </div>
+    <div class="ba-item">
+      <div class="ba-icon">&#10060;</div>
+      <div class="ba-body">
+        <div class="ba-title"><span class="ba-tag tag-nao">NÃO LOCALIZADO</span> Atendimentos &mdash; Planilha padr&atilde;o ANTT (RANTT306)</div>
+        <div class="ba-sub">O modelo RANTT306 n&atilde;o foi localizado no material enviado. Os dados de atendimentos foram extra&iacute;dos da aba <em>Atendimentos-considerados</em> do XLSX do C11. Solicitar envio do formato padronizado para pr&oacute;ximo ciclo.</div>
+      </div>
+    </div>
+    <div class="ba-item">
+      <div class="ba-icon">&#10060;</div>
+      <div class="ba-body">
+        <div class="ba-title"><span class="ba-tag tag-nao">NÃO LOCALIZADO</span> Localiza&ccedil;&atilde;o das Viaturas de Inspe&ccedil;&atilde;o (modelo ANTT)</div>
+        <div class="ba-sub">Dados de passagens VIT dispon&iacute;veis em formato <em>.parquet</em> (aba <em>Vit-considerados</em>), por&eacute;m sem confirma&ccedil;&atilde;o do modelo padronizado ANTT. 18 ve&iacute;culos identificados (IT01–IT15, CT01–CT03). Solicitar o modelo ANTT de prefer&ecirc;ncia.</div>
+      </div>
+    </div>
+    <div class="ba-item">
+      <div class="ba-icon">&#10060;</div>
+      <div class="ba-body">
+        <div class="ba-title"><span class="ba-tag tag-nao">NÃO LOCALIZADO</span> Dados de Tr&aacute;fego Pedagiado por Categoria / Pra&ccedil;a / Dia</div>
+        <div class="ba-sub">N&atilde;o localizado em nenhum arquivo do ciclo de Mar&ccedil;o/2026. Necess&aacute;rio para c&aacute;lculo do Fator D e conformidade tarifária. Solicitar formalmente via ofício.</div>
+      </div>
+    </div>
+    <div class="ba-item">
+      <div class="ba-icon">&#9888;</div>
+      <div class="ba-body">
+        <div class="ba-title"><span class="ba-tag tag-parc">PARCIAL</span> Indisponibilidade de Equipamentos / Sistemas ITS</div>
+        <div class="ba-sub">Excel com dados de indisponibilidade dos sistemas ITS (CCO, SAT, CFTV, PMV, SDA, SCV, SMM, WIM) n&atilde;o encaminhado. Bloco 4 deste informe permanece sem valores apurados at&eacute; recebimento dos dados.</div>
+      </div>
+    </div>
+    <div class="ba-item">
+      <div class="ba-icon">&#10060;</div>
+      <div class="ba-body">
+        <div class="ba-title"><span class="ba-tag tag-nao">NÃO LOCALIZADO</span> Fila de Ped&aacute;gio / Acesso a C&acirc;meras da Concession&aacute;ria</div>
+        <div class="ba-sub">Dados de fila de ped&aacute;gio n&atilde;o localizados. <strong>Of&iacute;cio Circular SUROD n&ordm; 1191/2026</strong> demanda acesso &agrave;s c&acirc;meras da concession&aacute;ria para monitoramento de filas. Pend&ecirc;ncia cr&iacute;tica &mdash; formalizar solicita&ccedil;&atilde;o &agrave; Ecovias.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCO 3: TEMPOS DE ATENDIMENTO -->
+  <div class="st">3. Tempos de Atendimento ao Usu&aacute;rio &mdash; Mar&ccedil;o/2026</div>
+
+  <div class="al ab">
+    <span style="font-weight:700;flex-shrink:0">&#8505; Universo apurado:</span>
+    Atendimentos-considerados: registros com tempo de resposta v&aacute;lido (dt_chegada &gt; dt_acionamento).
+    Desconsiderados: 5.767 registros com tempo nulo, chegada anterior ao acionamento ou par&acirc;metro <em>nao_aplica</em> (VIT, outros fora do PER).
+    Fonte: aba <em>Atendimentos-considerados</em> &mdash; C11-02-V1.xlsx.
+  </div>
+
+  <div class="card0">
+    <table>
+      <thead>
+        <tr>
+          <th>Recurso / Servi&ccedil;o</th>
+          <th style="text-align:center">Padr&atilde;o PER</th>
+          <th style="text-align:center">Ocorr&ecirc;ncias Totais</th>
+          <th style="text-align:center">V&aacute;lidas (t&gt;0)</th>
+          <th style="text-align:center">Tempo M&eacute;dio</th>
+          <th style="text-align:center">Tempo M&aacute;x.</th>
+          <th style="text-align:center">Conformidade</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:#e2e8f0">Ambul&acirc;ncia Tipo C</strong><br><span style="font-size:10px;color:#475569">Atendimento m&eacute;dico b&aacute;sico</span></td>
+          <td style="text-align:center;font-family:monospace">&le; 30 min</td>
+          <td style="text-align:center">190</td>
+          <td style="text-align:center">138</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80">9,7 min</td>
+          <td style="text-align:center;font-family:monospace">48 min</td>
+          <td><span class="bx bg">ATENDIDO</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:#e2e8f0">Ambul&acirc;ncia Tipo D</strong><br><span style="font-size:10px;color:#475569">UTI M&oacute;vel</span></td>
+          <td style="text-align:center;font-family:monospace">&le; 20 min</td>
+          <td style="text-align:center">60</td>
+          <td style="text-align:center">44</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80">13,2 min</td>
+          <td style="text-align:center;font-family:monospace">29 min</td>
+          <td><span class="bx bg">ATENDIDO</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:#e2e8f0">Guincho Leve</strong><br><span style="font-size:10px;color:#475569">Ve&iacute;culos de passeio e motos</span></td>
+          <td style="text-align:center;font-family:monospace">&le; 30 min</td>
+          <td style="text-align:center">1.024</td>
+          <td style="text-align:center">867</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80">25,6 min</td>
+          <td style="text-align:center;font-family:monospace;color:#fbbf24">162 min</td>
+          <td><span class="bx bg">ATENDIDO</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:#e2e8f0">Guincho Pesado</strong><br><span style="font-size:10px;color:#475569">Carga e &ocirc;nibus</span></td>
+          <td style="text-align:center;font-family:monospace">&le; 45 min</td>
+          <td style="text-align:center">415</td>
+          <td style="text-align:center">370</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80">39,2 min</td>
+          <td style="text-align:center;font-family:monospace;color:#fbbf24">190 min</td>
+          <td><span class="bx bg">ATENDIDO</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:#e2e8f0">Caminh&atilde;o-Pipa</strong><br><span style="font-size:10px;color:#475569">Combate a inc&ecirc;ndio</span></td>
+          <td style="text-align:center;font-family:monospace">&le; 20 min</td>
+          <td style="text-align:center"><span class="campo">N/D</span></td>
+          <td style="text-align:center"><span class="campo">N/D</span></td>
+          <td style="text-align:center"><span class="campo">N/D</span></td>
+          <td style="text-align:center"><span class="campo">N/D</span></td>
+          <td><span class="bx bo">N&Atilde;O FORNECIDO</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:#e2e8f0">Ve&iacute;culo de Apreens&atilde;o de Animais</strong><br><span style="font-size:10px;color:#475569">Animais na pista</span></td>
+          <td style="text-align:center;font-family:monospace">&le; 60 min</td>
+          <td style="text-align:center"><span class="campo">N/D</span></td>
+          <td style="text-align:center"><span class="campo">N/D</span></td>
+          <td style="text-align:center"><span class="campo">N/D</span></td>
+          <td style="text-align:center"><span class="campo">N/D</span></td>
+          <td><span class="bx bo">N&Atilde;O FORNECIDO</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="tf">Fonte: C11-02-Eco Araguaia-ABRIL-26 (REF. MARÇO-26)-V1.xlsx &middot; Aba Atendimentos-considerados &middot; 5.767 registros desconsiderados (nao_aplica / t=0)</div>
+  </div>
+
+  <div class="al aa">
+    <span style="font-weight:700;flex-shrink:0">&#9888; Aten&ccedil;&atilde;o &mdash; Tempo M&aacute;ximo:</span>
+    Guincho Leve registrou atendimento de 162 min e Guincho Pesado de 190 min. Embora a m&eacute;dia permane&ccedil;a dentro do padr&atilde;o PER, os valores m&aacute;ximos devem ser investigados individualmente (ocorr&ecirc;ncia, trecho, viatura). Solicitar justificativa &agrave; Ecovias.
+  </div>
+
+  <!-- BLOCO 3b: ATENDIMENTOS POR RODOVIA -->
+  <div class="card">
+    <div style="font-size:12px;font-weight:700;color:#e2e8f0;margin-bottom:10px">Distribui&ccedil;&atilde;o de Atendimentos por Rodovia &mdash; Mar&ccedil;o/2026</div>
+    <table>
+      <thead><tr><th>Rodovia</th><th style="text-align:center">Amb. Tipo C</th><th style="text-align:center">Amb. Tipo D</th><th style="text-align:center">Guincho Leve</th><th style="text-align:center">Guincho Pesado</th><th style="text-align:center">Outros Incid.</th><th style="text-align:center">Total</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:600;color:#e2e8f0">BR-153/GO</td><td style="text-align:center">109</td><td style="text-align:center">44</td><td style="text-align:center">521</td><td style="text-align:center">240</td><td style="text-align:center">8</td><td style="text-align:center;font-weight:700;color:#38bdf8">922</td></tr>
+        <tr><td style="font-weight:600;color:#e2e8f0">BR-153/TO</td><td style="text-align:center">41</td><td style="text-align:center">16</td><td style="text-align:center">216</td><td style="text-align:center">111</td><td style="text-align:center">3</td><td style="text-align:center;font-weight:700;color:#38bdf8">387</td></tr>
+        <tr><td style="font-weight:600;color:#e2e8f0">BR-414/GO</td><td style="text-align:center">31</td><td style="text-align:center">—</td><td style="text-align:center">207</td><td style="text-align:center">48</td><td style="text-align:center">5</td><td style="text-align:center;font-weight:700;color:#38bdf8">291</td></tr>
+        <tr><td style="font-weight:600;color:#e2e8f0">BR-080/GO</td><td style="text-align:center">9</td><td style="text-align:center">—</td><td style="text-align:center">80</td><td style="text-align:center">16</td><td style="text-align:center">3</td><td style="text-align:center;font-weight:700;color:#38bdf8">108</td></tr>
+        <tr style="border-top:2px solid rgba(255,255,255,.08)">
+          <td style="font-weight:700;color:#e2e8f0">TOTAL</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80">190</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80">60</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80">1.024</td>
+          <td style="text-align:center;font-weight:700;color:#4ade80">415</td>
+          <td style="text-align:center;font-weight:700;color:#64748b">19</td>
+          <td style="text-align:center;font-weight:700;color:#e2e8f0">1.708</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- BLOCO 4: ITS -->
+  <div class="st">4. Disponibilidade dos Sistemas ITS &mdash; Mar&ccedil;o/2026</div>
+
+  <div class="al ar" style="margin-bottom:10px">
+    <span style="font-weight:700;flex-shrink:0">&#10060; Dados N&atilde;o Fornecidos:</span>
+    O Excel de indisponibilidade dos sistemas ITS n&atilde;o foi encaminhado pela Ecovias para o ciclo de Mar&ccedil;o/2026.
+    Os valores abaixo n&atilde;o podem ser apurados at&eacute; o recebimento dos dados.
+    <strong>Solicitar formalmente via ofício ao ponto focal da Ecovias.</strong>
+  </div>
+
+  <div class="card0">
+    <table>
+      <thead>
+        <tr>
+          <th>Sistema / Equipamento</th>
+          <th style="text-align:center">Limite PER</th>
+          <th style="text-align:center">Indisponibilidade Apurada</th>
+          <th style="text-align:center">Conformidade</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong style="color:#e2e8f0">CCO &mdash; Centro de Controle Operacional</strong></td><td style="text-align:center;font-family:monospace">&le; 24 h</td><td style="text-align:center"><span class="campo">N/D</span></td><td><span class="bx bo">N&Atilde;O FORNECIDO</span></td></tr>
+        <tr><td><strong style="color:#e2e8f0">SAT &mdash; Sistema de An&aacute;lise de Tr&aacute;fego</strong></td><td style="text-align:center;font-family:monospace">&le; 24 h</td><td style="text-align:center"><span class="campo">N/D</span></td><td><span class="bx bo">N&Atilde;O FORNECIDO</span></td></tr>
+        <tr><td><strong style="color:#e2e8f0">CFTV &mdash; C&acirc;meras de Monitoramento</strong></td><td style="text-align:center;font-family:monospace">&le; 24 h</td><td style="text-align:center"><span class="campo">N/D</span></td><td><span class="bx bo">N&Atilde;O FORNECIDO</span></td></tr>
+        <tr><td><strong style="color:#e2e8f0">PMV Fixos e M&oacute;veis</strong></td><td style="text-align:center;font-family:monospace">&le; 24 h</td><td style="text-align:center"><span class="campo">N/D</span></td><td><span class="bx bo">N&Atilde;O FORNECIDO</span></td></tr>
+        <tr><td><strong style="color:#e2e8f0">SDA &mdash; Detec&ccedil;&atilde;o de Altura</strong></td><td style="text-align:center;font-family:monospace">&le; 24 h</td><td style="text-align:center"><span class="campo">N/D</span></td><td><span class="bx bo">N&Atilde;O FORNECIDO</span></td></tr>
+        <tr><td><strong style="color:#e2e8f0">SCV &mdash; Controle de Velocidade</strong></td><td style="text-align:center;font-family:monospace">&le; 24 h</td><td style="text-align:center"><span class="campo">N/D</span></td><td><span class="bx bo">N&Atilde;O FORNECIDO</span></td></tr>
+        <tr><td><strong style="color:#e2e8f0">SMM &mdash; Sistema Meteorol&oacute;gico</strong></td><td style="text-align:center;font-family:monospace">&le; 24 h</td><td style="text-align:center"><span class="campo">N/D</span></td><td><span class="bx bo">N&Atilde;O FORNECIDO</span></td></tr>
+        <tr><td><strong style="color:#e2e8f0">Sistema de Pesagem WIM</strong></td><td style="text-align:center;font-family:monospace">&le; 24 h</td><td style="text-align:center"><span class="campo">N/D</span></td><td><span class="bx bo">N&Atilde;O FORNECIDO</span></td></tr>
+      </tbody>
+    </table>
+    <div class="tf">Excel de indisponibilidade n&atilde;o recebido. Bloco 4 fica em aberto at&eacute; complementa&ccedil;&atilde;o pela Ecovias.</div>
+  </div>
+
+  <!-- BLOCO 5: SINISTROS -->
+  <div class="st">5. An&aacute;lise de Sinistros &mdash; Mar&ccedil;o/2026</div>
+
+  <div class="sin-grid">
+    <div class="sin-card" style="background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.15)">
+      <div class="sin-n" style="color:#38bdf8">100</div>
+      <div class="sin-l" style="color:#38bdf8">Total de Acidentes</div>
+      <div class="sin-s">28 segmentos homog&ecirc;neos</div>
+    </div>
+    <div class="sin-card" style="background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.15)">
+      <div class="sin-n" style="color:#fbbf24">7</div>
+      <div class="sin-l" style="color:#fbbf24">Com V&iacute;tima Grave</div>
+      <div class="sin-s">feridos graves</div>
+    </div>
+    <div class="sin-card" style="background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.15)">
+      <div class="sin-n" style="color:#f87171">4</div>
+      <div class="sin-l" style="color:#f87171">Com V&iacute;tima Fatal</div>
+      <div class="sin-s">acidentes com &oacute;bito</div>
+    </div>
+    <div class="sin-card" style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25)">
+      <div class="sin-n" style="color:#f87171">4</div>
+      <div class="sin-l" style="color:#f87171">Total de &Oacute;bitos</div>
+      <div class="sin-s">v&iacute;timas fatais</div>
+    </div>
+  </div>
+
+  <div class="two" style="margin-bottom:14px">
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:#e2e8f0;margin-bottom:10px">Distribui&ccedil;&atilde;o por Trecho &mdash; BR-153</div>
+      <div style="font-size:10px;color:#475569;margin-bottom:8px">Fonte: aba Acidentes (XLSX) &middot; BR-080 e BR-414 n&atilde;o constam no Anexo XIX encaminhado</div>
+      <table>
+        <thead><tr><th>Trecho</th><th style="text-align:center">Total</th><th style="text-align:center">Graves</th><th style="text-align:center">Fatais</th><th style="text-align:center">&Oacute;bitos</th></tr></thead>
+        <tbody>
+          <tr><td>BR-153/GO (km 107&ndash;622)</td><td style="text-align:center;font-weight:700;color:#38bdf8">78</td><td style="text-align:center;color:#fbbf24">5</td><td style="text-align:center;color:#f87171">3</td><td style="text-align:center;color:#f87171">3</td></tr>
+          <tr><td>BR-153/TO (km 622&ndash;810)</td><td style="text-align:center;font-weight:700;color:#38bdf8">22</td><td style="text-align:center;color:#fbbf24">2</td><td style="text-align:center;color:#f87171">1</td><td style="text-align:center;color:#f87171">1</td></tr>
+          <tr><td style="color:#475569">BR-080/GO</td><td style="text-align:center;color:#475569" colspan="4">Dados n&atilde;o fornecidos (Anexo XIX)</td></tr>
+          <tr><td style="color:#475569">BR-414/GO</td><td style="text-align:center;color:#475569" colspan="4">Dados n&atilde;o fornecidos (Anexo XIX)</td></tr>
+          <tr style="border-top:2px solid rgba(255,255,255,.08)"><td style="font-weight:700;color:#e2e8f0">BR-153 Total</td><td style="text-align:center;font-weight:700;color:#e2e8f0">100</td><td style="text-align:center;font-weight:700;color:#fbbf24">7</td><td style="text-align:center;font-weight:700;color:#f87171">4</td><td style="text-align:center;font-weight:700;color:#f87171">4</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:#e2e8f0;margin-bottom:10px">&#128308; Locais Cr&iacute;ticos &mdash; Taxa &ge; 0,30 acid./km</div>
+      <div style="font-size:10px;color:#475569;margin-bottom:10px">Crit&eacute;rio: taxa = n&ordm; acidentes / extens&atilde;o do segmento (km)</div>
+      <div class="crit-row"><div style="min-width:90px;font-size:11px;font-weight:700;color:#f87171">TH30</div><div style="font-size:10px;color:#94a3b8;flex:1">km 436,9&ndash;444,1 · 6 acid.</div><div style="font-size:11px;font-weight:700;color:#f87171">0,833</div><div class="crit-bar" style="max-width:60px;margin-left:6px"><div class="crit-fill" style="width:100%"></div></div></div>
+      <div class="crit-row"><div style="min-width:90px;font-size:11px;font-weight:700;color:#f87171">TH29</div><div style="font-size:10px;color:#94a3b8;flex:1">km 421,7&ndash;436,9 · 9 acid.</div><div style="font-size:11px;font-weight:700;color:#f87171">0,592</div><div class="crit-bar" style="max-width:60px;margin-left:6px"><div class="crit-fill" style="width:71%"></div></div></div>
+      <div class="crit-row"><div style="min-width:90px;font-size:11px;font-weight:700;color:#f87171">TH20</div><div style="font-size:10px;color:#94a3b8;flex:1">km 289,8&ndash;305,1 · 7 acid. · 2 graves</div><div style="font-size:11px;font-weight:700;color:#f87171">0,458</div><div class="crit-bar" style="max-width:60px;margin-left:6px"><div class="crit-fill" style="width:55%"></div></div></div>
+      <div class="crit-row"><div style="min-width:90px;font-size:11px;font-weight:600;color:#fbbf24">TH22</div><div style="font-size:10px;color:#94a3b8;flex:1">km 320,4&ndash;323,1 · 1 acid. grave</div><div style="font-size:11px;font-weight:600;color:#fbbf24">0,370</div><div class="crit-bar" style="max-width:60px;margin-left:6px"><div class="crit-fill" style="width:44%;background:#fbbf24"></div></div></div>
+      <div class="crit-row"><div style="min-width:90px;font-size:11px;font-weight:600;color:#fbbf24">TH24</div><div style="font-size:10px;color:#94a3b8;flex:1">km 358,2&ndash;361,0 · 1 acid.</div><div style="font-size:11px;font-weight:600;color:#fbbf24">0,357</div><div class="crit-bar" style="max-width:60px;margin-left:6px"><div class="crit-fill" style="width:43%;background:#fbbf24"></div></div></div>
+      <div class="crit-row"><div style="min-width:90px;font-size:11px;font-weight:600;color:#fbbf24">TH15</div><div style="font-size:10px;color:#94a3b8;flex:1">km 201,3&ndash;213,0 · 4 acid.</div><div style="font-size:11px;font-weight:600;color:#fbbf24">0,342</div><div class="crit-bar" style="max-width:60px;margin-left:6px"><div class="crit-fill" style="width:41%;background:#fbbf24"></div></div></div>
+      <div class="crit-row"><div style="min-width:90px;font-size:11px;font-weight:600;color:#fbbf24">TH18</div><div style="font-size:10px;color:#94a3b8;flex:1">km 275,6&ndash;285,3 · 3 acid.</div><div style="font-size:11px;font-weight:600;color:#fbbf24">0,309</div><div class="crit-bar" style="max-width:60px;margin-left:6px"><div class="crit-fill" style="width:37%;background:#fbbf24"></div></div></div>
+    </div>
+  </div>
+
+  <!-- BLOCO VIT -->
+  <div class="st">VIT &mdash; Ve&iacute;culos de Inspe&ccedil;&atilde;o de Tr&aacute;fego &mdash; Mar&ccedil;o/2026</div>
+
+  <div class="al aa" style="margin-bottom:10px">
+    <span style="font-weight:700;flex-shrink:0">&#9888; Formato n&atilde;o padronizado:</span>
+    Dados VIT fornecidos em arquivo <em>.parquet</em> e incorporados na aba <em>Vit-considerados</em> do C11 XLSX.
+    O modelo padronizado ANTT n&atilde;o foi encaminhado. 18 ve&iacute;culos identificados (IT01&ndash;IT15 + CT01&ndash;CT03, sendo 4 reserva).
+    Solicitar modelo oficial &agrave; ANTT / Ecovias para pr&oacute;ximo ciclo.
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:#e2e8f0;margin-bottom:10px">Top 8 Pontos de Controle por N&ordm; de Passagens</div>
+      <div style="font-size:10px;color:#475569;margin-bottom:8px">18 ve&iacute;culos de inspe&ccedil;&atilde;o ativos &middot; M&uacute;ltiplos pontos de controle por trecho</div>
+      <div class="crit-row" style="border-bottom:1px solid rgba(255,255,255,.05)"><div style="min-width:160px;font-size:11px;color:#94a3b8">km 200 BR-153 GO</div><div style="font-size:11px;font-weight:700;color:#4ade80">1.742</div><div class="crit-bar" style="max-width:80px;margin-left:6px"><div class="crit-fill" style="width:100%;background:#4ade80"></div></div></div>
+      <div class="crit-row" style="border-bottom:1px solid rgba(255,255,255,.05)"><div style="min-width:160px;font-size:11px;color:#94a3b8">km 740 BR-153 TO</div><div style="font-size:11px;font-weight:700;color:#4ade80">951</div><div class="crit-bar" style="max-width:80px;margin-left:6px"><div class="crit-fill" style="width:55%;background:#4ade80"></div></div></div>
+      <div class="crit-row" style="border-bottom:1px solid rgba(255,255,255,.05)"><div style="min-width:160px;font-size:11px;color:#94a3b8">km 435 BR-414 TO</div><div style="font-size:11px;font-weight:700;color:#4ade80">815</div><div class="crit-bar" style="max-width:80px;margin-left:6px"><div class="crit-fill" style="width:47%;background:#4ade80"></div></div></div>
+      <div class="crit-row" style="border-bottom:1px solid rgba(255,255,255,.05)"><div style="min-width:160px;font-size:11px;color:#94a3b8">km 690 BR-153 TO</div><div style="font-size:11px;font-weight:700;color:#4ade80">759</div><div class="crit-bar" style="max-width:80px;margin-left:6px"><div class="crit-fill" style="width:44%;background:#4ade80"></div></div></div>
+      <div class="crit-row" style="border-bottom:1px solid rgba(255,255,255,.05)"><div style="min-width:160px;font-size:11px;color:#94a3b8">km 395 BR-153 GO</div><div style="font-size:11px;font-weight:700;color:#4ade80">743</div><div class="crit-bar" style="max-width:80px;margin-left:6px"><div class="crit-fill" style="width:43%;background:#4ade80"></div></div></div>
+      <div class="crit-row" style="border-bottom:1px solid rgba(255,255,255,.05)"><div style="min-width:160px;font-size:11px;color:#94a3b8">km 630 BR-153 TO</div><div style="font-size:11px;font-weight:700;color:#4ade80">694</div><div class="crit-bar" style="max-width:80px;margin-left:6px"><div class="crit-fill" style="width:40%;background:#4ade80"></div></div></div>
+      <div class="crit-row" style="border-bottom:1px solid rgba(255,255,255,.05)"><div style="min-width:160px;font-size:11px;color:#94a3b8">km 10 BR-153 GO</div><div style="font-size:11px;font-weight:700;color:#4ade80">688</div><div class="crit-bar" style="max-width:80px;margin-left:6px"><div class="crit-fill" style="width:39%;background:#4ade80"></div></div></div>
+      <div class="crit-row"><div style="min-width:160px;font-size:11px;color:#94a3b8">km 790 BR-153 TO</div><div style="font-size:11px;font-weight:700;color:#4ade80">685</div><div class="crit-bar" style="max-width:80px;margin-left:6px"><div class="crit-fill" style="width:39%;background:#4ade80"></div></div></div>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;font-weight:700;color:#e2e8f0;margin-bottom:10px">Ve&iacute;culos Identificados (18)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div style="font-size:11px;color:#94a3b8;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span class="bx bbl" style="font-size:9px">IT</span> IT01 a IT11</div>
+        <div style="font-size:11px;color:#64748b;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span class="bx bb" style="font-size:9px">RES</span> IT12 a IT15</div>
+        <div style="font-size:11px;color:#94a3b8;padding:4px 0"><span class="bx bbl" style="font-size:9px">CT</span> CT01, CT02, CT03</div>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:#475569;line-height:1.7;border-top:1px solid rgba(255,255,255,.05);padding-top:10px">
+        &#9642; <em>IT = Inspe&ccedil;&atilde;o de Tr&aacute;fego</em><br>
+        &#9642; <em>CT = Controle de Tr&aacute;fego</em><br>
+        &#9642; <em>(Reserva) = ve&iacute;culo sobressalente em opera&ccedil;&atilde;o</em>
+      </div>
+      <div class="al ab" style="margin-top:10px;margin-bottom:0;font-size:10px">
+        Dados VIT em formato <em>.parquet</em>. Modelo ANTT n&atilde;o confirmado. Solicitar &agrave; Ecovias o formato padronizado previsto no PER.
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCO 6: SÍNTESE -->
+  <div class="st">6. S&iacute;ntese de Conformidade &mdash; C11 &middot; Mar&ccedil;o/2026</div>
+
+  <div class="syn">
+    <div class="syi"><span class="syi-l">Amb. Tipo C (&#x2205; 9,7 min / limite 30 min)</span><span class="bx bg">ATENDIDO</span></div>
+    <div class="syi"><span class="syi-l">Amb. Tipo D (&#x2205; 13,2 min / limite 20 min)</span><span class="bx bg">ATENDIDO</span></div>
+    <div class="syi"><span class="syi-l">Guincho Leve (&#x2205; 25,6 min / limite 30 min)</span><span class="bx bg">ATENDIDO</span></div>
+    <div class="syi"><span class="syi-l">Guincho Pesado (&#x2205; 39,2 min / limite 45 min)</span><span class="bx bg">ATENDIDO</span></div>
+    <div class="syi"><span class="syi-l">Caminh&atilde;o-Pipa</span><span class="bx bo">N/D &mdash; N&Atilde;O FORNECIDO</span></div>
+    <div class="syi"><span class="syi-l">Apreens&atilde;o de Animais</span><span class="bx bo">N/D &mdash; N&Atilde;O FORNECIDO</span></div>
+    <div class="syi"><span class="syi-l">Patrulhamento VIT (dados parciais)</span><span class="bx bo">FORMATO N&Atilde;O PADRONIZADO</span></div>
+    <div class="syi"><span class="syi-l">Disponibilidade ITS (CCO, SAT, CFTV&hellip;)</span><span class="bx br">DADOS N&Atilde;O FORNECIDOS</span></div>
+    <div class="syi"><span class="syi-l">Tr&aacute;fego Pedagiado (categoria/pra&ccedil;a/dia)</span><span class="bx br">DADOS N&Atilde;O FORNECIDOS</span></div>
+    <div class="syi"><span class="syi-l">Fila de Ped&aacute;gio / C&acirc;meras (Of. SUROD 1191)</span><span class="bx br">DADOS N&Atilde;O FORNECIDOS</span></div>
+    <div class="syi"><span class="syi-l">Locais Cr&iacute;ticos &mdash; 7 segmentos (taxa &ge;0,30)</span><span class="bx br">ATEN&Ccedil;&Atilde;O REGULAT&Oacute;RIA</span></div>
+  </div>
+
+  <div class="two" style="margin-top:14px">
+    <div class="al ag">
+      <div><strong>Conformidades apuradas (4):</strong><br>
+        &bull; Amb. Tipo C: 9,7 min (limite 30 min)<br>
+        &bull; Amb. Tipo D: 13,2 min (limite 20 min)<br>
+        &bull; Guincho Leve: 25,6 min (limite 30 min)<br>
+        &bull; Guincho Pesado: 39,2 min (limite 45 min)
+      </div>
+    </div>
+    <div class="al ar">
+      <div><strong>Pend&ecirc;ncias cr&iacute;ticas (6):</strong><br>
+        &bull; ITS: Excel n&atilde;o encaminhado<br>
+        &bull; Tr&aacute;fego pedagiado: n&atilde;o localizado<br>
+        &bull; Fila ped&aacute;gio / Of. SUROD 1191/2026<br>
+        &bull; RANTT306 n&atilde;o localizado<br>
+        &bull; Caminh&atilde;o-Pipa e Animais: dados ausentes<br>
+        &bull; VIT: formato ANTT n&atilde;o confirmado
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleNota(){
+  var btn=document.getElementById('nota-btn');
+  var body=document.getElementById('nota-body');
+  btn.classList.toggle('open');
+  body.classList.toggle('open');
+  btn.querySelector('strong').textContent=body.classList.contains('open')
+    ?'ℹ Metodologia de auditoria — clique para recolher'
+    :'ℹ Metodologia de auditoria — clique para expandir';
+}
+</script>
+</body>
+</html>
